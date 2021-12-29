@@ -1,1 +1,1 @@
-web: ./build/install/shoppinglist/bin/shoppinglist
+web: ./build/install/ktor-fullstack-template/bin/ktor-fullstack-template
