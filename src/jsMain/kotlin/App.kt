@@ -1,11 +1,12 @@
-import react.*
-import react.dom.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.MainScope
+import react.FC
+import react.Props
+import react.dom.html.ReactHTML.h1
 
 private val scope = MainScope()
 
-val app = fc<Props> {
+val app = FC<Props> {
     h1 {
-        +"This is a Ktor Fullstack Template"
+        +"This is a Full Stack Kotlin Template"
     }
 }

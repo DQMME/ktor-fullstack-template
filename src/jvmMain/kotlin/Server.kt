@@ -1,44 +1,49 @@
-import io.ktor.application.*
-import io.ktor.features.*
-import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.serialization.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import com.mongodb.ConnectionString
-
-val connectionString: ConnectionString? = System.getenv("MONGODB_URI")?.let {
-    ConnectionString("$it?retryWrites=false")
-}
+import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.call
+import io.ktor.server.application.install
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.http.content.resources
+import io.ktor.server.http.content.static
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
+import kotlinx.serialization.json.Json
 
 fun main() {
-    val port = System.getenv("PORT")?.toInt() ?: 9090
-    embeddedServer(Netty, port) {
+    embeddedServer(Netty, 9090) {
         install(ContentNegotiation) {
-            json()
+            json(Json {
+                ignoreUnknownKeys = true
+                prettyPrint = true
+            })
         }
+
         install(CORS) {
-            method(HttpMethod.Get)
-            method(HttpMethod.Post)
-            method(HttpMethod.Delete)
+            allowMethod(HttpMethod.Get)
+            allowMethod(HttpMethod.Post)
+            allowMethod(HttpMethod.Delete)
             anyHost()
-        }
-        install(Compression) {
-            gzip()
         }
 
         routing {
             get("/") {
-                call.respondText(
-                    this::class.java.classLoader.getResource("index.html")!!.readText(),
-                    ContentType.Text.Html
-                )
+                call.respondResourceHtml("index.html")
             }
-            static("/") {
+
+            static("/static") {
                 resources("")
             }
         }
     }.start(wait = true)
 }
+
+suspend fun ApplicationCall.respondResourceHtml(name: String) = respondText(
+    this::class.java.classLoader.getResource(name)!!.readText(),
+    ContentType.Text.Html
+)
