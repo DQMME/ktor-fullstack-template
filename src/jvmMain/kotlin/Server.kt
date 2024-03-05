@@ -1,22 +1,22 @@
-import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.http.content.resources
-import io.ktor.server.http.content.static
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
-import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import kotlinx.serialization.json.Json
+import util.Config
+import util.respondResourceHtml
 
 fun main() {
-    embeddedServer(Netty, 9090) {
+    Config()
+
+    embeddedServer(Netty, Config.port) {
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -36,14 +36,7 @@ fun main() {
                 call.respondResourceHtml("index.html")
             }
 
-            static("/static") {
-                resources("")
-            }
+            staticResources("/static", "")
         }
     }.start(wait = true)
 }
-
-suspend fun ApplicationCall.respondResourceHtml(name: String) = respondText(
-    this::class.java.classLoader.getResource(name)!!.readText(),
-    ContentType.Text.Html
-)
